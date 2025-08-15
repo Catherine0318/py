@@ -106,7 +106,7 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 ax1.scatter(system.pos[:, 0], system.pos[:, 1], s=1, alpha=0.5, color='blue')
 ax1.set_xlim(0, system.box_size)
 ax1.set_ylim(0, system.box_size)
-ax1.set_title("粒子运动轨迹", fontsize=12)
+ax1.set_title("Particle Motion", fontsize=12)
 ax1.set_xticks([])
 ax1.set_yticks([])
 ax1.grid(True, alpha=0.2)
@@ -117,19 +117,19 @@ speed_range = np.linspace(0, max_speed, 300)
 
 if mode_param == 'temperature':
     theory_curve = maxwell.pdf(speed_range, scale=physical_param_value)
-    title = f"速度分布 (T={physical_param_value:.1f})"
+    title = f"Speed Distribution (T={physical_param_value:.1f})"
 else:
     theory_curve = maxwell.pdf(speed_range, scale=np.sqrt(1 / physical_param_value))
-    title = f"速度分布 (m={physical_param_value:.1f})"
+    title = f"Speed Distribution (m={physical_param_value:.1f})"
 
 # 绘制理论曲线和模拟直方图
-ax2.plot(speed_range, theory_curve, 'r-', lw=2, label='理论值')
-ax2.hist(system.speeds, bins=50, density=True, alpha=0.5, label='模拟值')
+ax2.plot(speed_range, theory_curve, 'r-', lw=2, label='Theoretical')
+ax2.hist(system.speeds, bins=50, density=True, alpha=0.5, label='Simulated')
 
 # 添加三种特征速率线（不显示具体数值）
-ax2.axvline(v_p, color='blue', linestyle='--', alpha=0.7, label='最概然速率')
-ax2.axvline(v_mean, color='green', linestyle='--', alpha=0.7, label='平均速率')
-ax2.axvline(v_rms, color='purple', linestyle='--', alpha=0.7, label='方均根速率')
+ax2.axvline(v_p, color='blue', linestyle='--', alpha=0.7, label='Most Probable')
+ax2.axvline(v_mean, color='green', linestyle='--', alpha=0.7, label='Mean')
+ax2.axvline(v_rms, color='purple', linestyle='--', alpha=0.7, label='RMS')
 
 ax2.set_title(title, fontsize=12)
 ax2.set_xlim(0, max_speed)
