@@ -16,7 +16,7 @@ class ParticleSystem:
         """
         self.n = n
         self.simulation_mode = simulation_mode
-        self.physical_param = physical_param  # 重命名为physical_param避免冲突
+        self.physical_param = physical_param
         self.box_size = 15
         self.pos = np.random.rand(n, 2) * self.box_size
         self._initialize_velocities()
@@ -53,10 +53,22 @@ class ParticleSystem:
         """计算所有粒子的速度大小"""
         return np.linalg.norm(self.vel, axis=1)
 
+    def get_characteristic_speeds(self):
+        """计算三种特征速率"""
+        if self.simulation_mode == 'temperature':
+            scale = self.physical_param
+        else:
+            scale = np.sqrt(1 / self.physical_param)
+
+        v_p = np.sqrt(2) * scale  # 最概然速率
+        v_mean = 2 * np.sqrt(2 / np.pi) * scale  # 平均速率
+        v_rms = np.sqrt(3) * scale  # 方均根速率
+        return v_p, v_mean, v_rms
+
 
 # Streamlit界面配置
 st.set_page_config(layout="wide")
-st.title("🌡️ 粒子物理模拟器")
+st.title("🌡️ 速率分布模拟器")
 
 # 侧边栏控制面板
 with st.sidebar:
@@ -81,11 +93,14 @@ system = ParticleSystem(
     physical_param=physical_param_value
 )
 
+# 计算特征速率
+v_p, v_mean, v_rms = system.get_characteristic_speeds()
+
 # 实时更新模拟
 system.update()
 
 # 创建可视化图表
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 
 # 粒子运动图
 ax1.scatter(system.pos[:, 0], system.pos[:, 1], s=1, alpha=0.5, color='blue')
@@ -102,16 +117,23 @@ speed_range = np.linspace(0, max_speed, 300)
 
 if mode_param == 'temperature':
     theory_curve = maxwell.pdf(speed_range, scale=physical_param_value)
-    title = f"速度分布 (温度={physical_param_value:.1f})"
+    title = f"速度分布 (T={physical_param_value:.1f})"
 else:
     theory_curve = maxwell.pdf(speed_range, scale=np.sqrt(1 / physical_param_value))
-    title = f"速度分布 (质量={physical_param_value:.1f})"
+    title = f"速度分布 (m={physical_param_value:.1f})"
 
+# 绘制理论曲线和模拟直方图
 ax2.plot(speed_range, theory_curve, 'r-', lw=2, label='理论值')
 ax2.hist(system.speeds, bins=50, density=True, alpha=0.5, label='模拟值')
+
+# 添加三种特征速率线（不显示具体数值）
+ax2.axvline(v_p, color='blue', linestyle='--', alpha=0.7, label='最概然速率')
+ax2.axvline(v_mean, color='green', linestyle='--', alpha=0.7, label='平均速率')
+ax2.axvline(v_rms, color='purple', linestyle='--', alpha=0.7, label='方均根速率')
+
 ax2.set_title(title, fontsize=12)
 ax2.set_xlim(0, max_speed)
-ax2.legend()
+ax2.legend(fontsize=9, loc='upper right')
 ax2.grid(True, alpha=0.2)
 
 # 显示图表
@@ -123,4 +145,5 @@ with st.expander("ℹ️ 使用说明"):
     - **温度模式**：调节粒子运动速度的分布宽度
     - **质量模式**：调节粒子质量（影响速度分布形状）
     - 粒子数量越多，模拟越精确但性能消耗越大
+    - 图中虚线表示三种特征速率的位置
     """)
